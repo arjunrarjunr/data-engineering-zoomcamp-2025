@@ -1,0 +1,11 @@
+numpy
+pandas
+jupyterlab
+statsmodels
+sqlalchemy
+seaborn
+matplotlib
+pgcli
+psycopg2-binary
+pyarrow
+fastparquet

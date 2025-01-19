@@ -1,0 +1,46 @@
+services:
+  python_analysis_container:
+    build: ./docker/python
+    restart: always
+    container_name: python_analysis_container
+    volumes:
+      - ./notebooks/:/root/notebooks
+      - ./data/:/root/data
+    ports:
+      - "1234:1234"
+    environment:
+      - JUPYTER_TOKEN=dlinano
+    networks:
+      - dev-network
+
+    command: jupyter lab --no-browser --ip=0.0.0.0 --port=1234 --allow-root
+  postgres_db_container:
+    image: postgres:13
+    restart: always
+    container_name: postgres_db_container
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: ny_taxi
+    volumes:
+      - ./ny_taxi_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - dev-network
+
+  postgres_admin_container:
+    image: dpage/pgadmin4
+    restart: always
+    container_name: postgres_admin_container
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "8080:80"
+    networks:
+      - dev-network
+
+networks:
+  dev-network:
+    driver: bridge
