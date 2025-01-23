@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from sqlalchemy import create_engine
 import argparse
+import yaml
 
 
 def main(args):
@@ -20,10 +21,10 @@ def main(args):
         --ingest_file_url: URL of the file to ingest.
 
     Usage:
-        python ingest.py --username <username> --password <password> --host <host> --port <port> --database <database> --ingest_file_url <url_to_file>
+        python ingest.py --username <username> --password <password> --host <host> --port <port> --database <database> --ingest_file_url <url_to_file> --table_name <table_name>
 
     Example:
-        python ingest.py --username user --password pass --host localhost --port 5432 --database mydb --ingest_file_url http://example.com/data.csv.gz
+        python ingest.py --username user --password pass --host localhost --port 5432 --database mydb --ingest_file_url http://example.com/data.csv.gz --table_name mytable
 
     Comments:
         - Imports necessary libraries: pandas, sqlalchemy, and argparse.
@@ -42,6 +43,7 @@ def main(args):
     port = args.port
     database = args.database
     ingest_file_url = args.ingest_file_url
+    table_name = args.table_name
     # Create the connection URL
     connection_url = f"postgresql://{username}:{password}@{host}:{port}/{database}"
 
@@ -49,26 +51,42 @@ def main(args):
 
     connector.connect()
 
-    os.system(f"wget {ingest_file_url} -O ingest.csv.gz")
+    if ingest_file_url.endswith(".csv.gz"):
+        os.system(f"wget {ingest_file_url} -O ingest.csv.gz")
+        df_iter = pd.read_csv(
+            filepath_or_buffer="ingest.csv.gz",
+            iterator=True,
+            chunksize=100000,
+            compression="gzip",
+        )
+    elif ingest_file_url.endswith(".csv"):
+        os.system(f"wget {ingest_file_url} -O ingest.csv")
+        df_iter = pd.read_csv(
+            filepath_or_buffer="ingest.csv",
+            iterator=True,
+            chunksize=100000,
+        )
 
-    df_iter = pd.read_csv(
-        filepath_or_buffer="ingest.csv.gz",
-        iterator=True,
-        chunksize=100000,
-        compression="gzip",
+    def type_cast_columns_to_datetime(df, columns):
+        for column_name in columns:
+            if column_name in df.columns:
+                df[column_name] = pd.to_datetime(df[column_name])
+        return df
+
+    type_cast_columns_to_datetime_list = yaml.safe_load(
+        open("type_cast_columns_to_datetime.yml")
     )
-
     for iter_inx, df in enumerate(df_iter):
-        df["tpep_pickup_datetime"] = pd.to_datetime(df["tpep_pickup_datetime"])
-        df["tpep_dropoff_datetime"] = pd.to_datetime(df["tpep_dropoff_datetime"])
+        df = type_cast_columns_to_datetime(df, type_cast_columns_to_datetime_list)
         if iter_inx == 0:
-            df.to_sql(
-                name="yellow_taxi_data", con=connector, index=False, if_exists="replace"
-            )
+            df.to_sql(name=table_name, con=connector, index=False, if_exists="replace")
         else:
-            df.to_sql(
-                name="yellow_taxi_data", con=connector, index=False, if_exists="append"
-            )
+            df.to_sql(name=table_name, con=connector, index=False, if_exists="append")
+
+    if ingest_file_url.endswith(".csv.gz"):
+        os.remove("ingest.csv.gz")
+    elif ingest_file_url.endswith(".csv"):
+        os.remove("ingest.csv")
 
 
 if __name__ == "__main__":
@@ -84,10 +102,10 @@ if __name__ == "__main__":
     parser.add_argument("--port", type=str, help="Database port")
     parser.add_argument("--database", type=str, help="Database name")
     parser.add_argument("--ingest_file_url", type=str, help="url of the file to ingest")
-
+    parser.add_argument("--table_name", type=str, help="table name")
     # Parse the arguments
     args = parser.parse_args()
 
     main(args)
 
-
+    print("Ingestion completed successfully.")

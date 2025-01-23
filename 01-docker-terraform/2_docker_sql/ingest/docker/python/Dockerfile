@@ -1,8 +1,8 @@
-FROM docker.io/bitnami/python:3.9.7
+FROM docker.io/bitnami/python:3.12.8
+
+WORKDIR /root/scripts
 
 ADD requirements.txt .
-
-ADD ingest.py .
 
 RUN apt-get update && \
     apt-get install -y libpq-dev && \
@@ -12,5 +12,3 @@ RUN apt-get update && \
 RUN pip install --upgrade pip
 
 RUN pip install -r requirements.txt
-
-ENTRYPOINT [ "python" , "ingest.py" ]

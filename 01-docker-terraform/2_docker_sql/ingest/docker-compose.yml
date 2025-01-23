@@ -1,0 +1,32 @@
+services:
+  ingest_container:
+    restart: no
+    build: ./docker/python
+    container_name: ingest_container
+    volumes:
+      - ./scripts:/root/scripts
+      - ./data/:/root/data
+    environment:
+      - JUPYTER_TOKEN=dlinano
+    command:
+      - python
+      - ingest.py
+      - --username
+      - root
+      - --password
+      - root
+      - --host
+      - postgres_db_container
+      - --port
+      - "5432"
+      - --database
+      - ny_taxi
+      - --table_name
+      - taxi_zone_lookup
+      - --ingest_file_url
+      - https://github.com/DataTalksClub/nyc-tlc-data/releases/download/misc/taxi_zone_lookup.csv
+    networks:
+      - 2_docker_sql_dev-network
+networks:
+  2_docker_sql_dev-network:
+    external: true

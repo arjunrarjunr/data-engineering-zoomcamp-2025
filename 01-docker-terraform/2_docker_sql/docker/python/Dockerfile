@@ -1,4 +1,4 @@
-FROM docker.io/bitnami/python:3.9.7
+FROM docker.io/bitnami/python:3.12.8
 
 WORKDIR /root/notebooks
 
