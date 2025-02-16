@@ -26,7 +26,7 @@ services:
       - --ingest_file_url
       - https://github.com/DataTalksClub/nyc-tlc-data/releases/download/misc/taxi_zone_lookup.csv
     networks:
-      - 2_docker_sql_dev-network
+      - dev-network
 networks:
-  2_docker_sql_dev-network:
+  dev-network:
     external: true

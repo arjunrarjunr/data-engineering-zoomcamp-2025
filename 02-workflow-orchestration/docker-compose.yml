@@ -19,6 +19,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 10
+    networks:
+      - dev-network
 
   kestra:
     restart: always
@@ -65,3 +67,9 @@ services:
     depends_on:
       postgres:
         condition: service_started
+    networks:
+      - dev-network
+
+networks:
+  dev-network:
+    external: true

@@ -1,0 +1,34 @@
+id: gcp_ingest_bq
+namespace: company.team
+
+inputs:
+  - id: taxi_color
+    displayName: select taxi color
+    type: SELECT
+    defaults: "green"
+    values: ["yellow", "green"]
+    required: true
+  - id: year
+    displayName: select year
+    type: SELECT
+    defaults: "2019"
+    values: ["2019", "2020"]
+    required: true
+  - id: month
+    displayName: select month
+    type: SELECT
+    defaults: "01"
+    values:
+      ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
+    required: true
+
+variables:
+  file: "{{inputs.taxi_color}}_tripdata_{{inputs.year}}-{{inputs.month}}.csv"
+  staging_table: "public.{{inputs.taxi_color}}_tripdata_staging"
+  final_table: "public.{{inputs.taxi_color}}_tripdata"
+  data: "{{outputs.extract.outputFiles[inputs.taxi_color ~ '_tripdata_' ~ inputs.year ~ '-' ~ inputs.month ~ '.csv']}}"
+  data_url: "https://github.com/DataTalksClub/nyc-tlc-data/releases/download/{{inputs.taxi_color}}/{{inputs.taxi_color}}_tripdata_{{inputs.year}}-{{inputs.month}}.csv.gz"
+
+task:
+  -id: green
+   
