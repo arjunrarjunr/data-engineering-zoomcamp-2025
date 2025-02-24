@@ -1,0 +1,15 @@
+version: 2
+sources:
+  - name: nyc_taxi
+    database: "{{env_var('DBT_DB')}}"
+    schema: "{{env_var('DBT_SCHEMA')}}"
+    tables:
+      - name: raw_green
+        identifier: green_trips
+
+      - name: raw_yellow
+        identifier: yellow_trips
+        
+      - name: raw_fhv
+        identifier: for_hire_vehicle_trips
+        
